@@ -26,4 +26,5 @@ describe('Finalização de compra', () => {
         checkoutPage.finishCheckoutButton()
         checkoutPage.checkoutMessage(expectedMessage)
     });
+    
 });
