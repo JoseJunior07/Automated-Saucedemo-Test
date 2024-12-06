@@ -1,4 +1,4 @@
-class shoppingCart {
+class ShoppingCart {
     visit() {
         cy.visit('/')
     }
@@ -27,4 +27,4 @@ class shoppingCart {
 
 }
 
-export default new shoppingCart ()
+export default new ShoppingCart ()

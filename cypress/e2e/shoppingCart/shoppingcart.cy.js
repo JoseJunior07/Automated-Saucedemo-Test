@@ -1,22 +1,23 @@
-import shoppingCartPage from "../../page-objects/shoppingCartPage";
+import ShoppingCartPage from "../../page-objects/ShoppingCartPage";
 import LoginPage from "../../page-objects/LoginPage";
 
 
 describe('Carrinho de Compras', () => {
 
     beforeEach(() => {
-        shoppingCartPage.visit('/')
+        ShoppingCartPage.visit('/')
+        LoginPage.login('standard_user', 'secret_sauce')
+        cy.url().should('include', '/inventory')
     })
 
     it('CT001 - Adicionar um produto ao carrinho e verificar se o carrinho exibe o produto adicionado.', () => {
         const productSelector = "[data-test='add-to-cart-sauce-labs-backpack']";
         const expectedProductName = 'Sauce Labs Backpack';
 
-        LoginPage.login('standard_user', 'secret_sauce')
-
-        shoppingCartPage.addProduct(productSelector)
-        shoppingCartPage.openCart()
-        shoppingCartPage.verifyProductInCart(expectedProductName)
+        ShoppingCartPage.addProduct(productSelector)
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
+        ShoppingCartPage.verifyProductInCart(expectedProductName)
     });
 
     it('CT002 - Adicionar múltiplos produtos ao carrinho e confirmar se todos estão listados.', () => {
@@ -26,16 +27,15 @@ describe('Carrinho de Compras', () => {
             { selector: "[data-test='add-to-cart-sauce-labs-bolt-t-shirt']", name: 'Sauce Labs Bolt T-Shirt'}
         ]; 
 
-        LoginPage.login('standard_user', 'secret_sauce')
-
         products.forEach(product => {
-            shoppingCartPage.addProduct(product.selector)
+            ShoppingCartPage.addProduct(product.selector)
         });
 
-        shoppingCartPage.openCart()
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
 
         products.forEach(product => {
-            shoppingCartPage.verifyProductInCart(product.name)
+            ShoppingCartPage.verifyProductInCart(product.name)
         });
     });
 
@@ -46,22 +46,21 @@ describe('Carrinho de Compras', () => {
             { selector: "[data-test='add-to-cart-sauce-labs-bolt-t-shirt']", name: 'Sauce Labs Bolt T-Shirt', removeSelector: "[data-test='remove-sauce-labs-bolt-t-shirt']" }
         ]; 
 
-        LoginPage.login('standard_user', 'secret_sauce')
-
         products.forEach(product => {
-            shoppingCartPage.addProduct(product.selector)
+            ShoppingCartPage.addProduct(product.selector)
         });
 
-        shoppingCartPage.openCart()
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
 
         products.forEach(product => {
-            shoppingCartPage.verifyProductInCart(product.name)
+            ShoppingCartPage.verifyProductInCart(product.name)
         });
 
         const productToRemove = products[0]
-        shoppingCartPage.removeProduct(productToRemove.removeSelector)
+        ShoppingCartPage.removeProduct(productToRemove.removeSelector)
 
-        shoppingCartPage.verifyCartItemCount(products.length - 1)
+        ShoppingCartPage.verifyCartItemCount(products.length - 1)
     });
     
 });

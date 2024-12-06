@@ -36,6 +36,10 @@ class LoginPage {
         cy.url().should('include', '/inventory')
 
     }
+
+    verifyUrlPage(url) {
+        cy.url().should('include', url)
+    }
 }
 
 export default new LoginPage()

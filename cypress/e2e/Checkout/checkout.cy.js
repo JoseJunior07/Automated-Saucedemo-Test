@@ -1,30 +1,65 @@
-import checkoutPage from "../../page-objects/checkoutPage";
+import CheckoutPage from "../../page-objects/CheckoutPage";
 import LoginPage from "../../page-objects/LoginPage";
-import shoppingCartPage from "../../page-objects/shoppingCartPage";
+import ShoppingCartPage from "../../page-objects/ShoppingCartPage";
 
 describe('Finalização de compra', () => {
     
     beforeEach(() => {
-        checkoutPage.visit('/')
+        CheckoutPage.visit('/') 
+        LoginPage.login('standard_user', 'secret_sauce')
+        cy.url().should('include', '/inventory')      
     })
 
-    it('Preencher dados de entrega, finalizar a compra e verificar mensagem de sucesso', () => {
+    it('CT001 - Preencher dados de entrega, finalizar a compra e verificar mensagem de sucesso', () => {
         
         const productSelector = "[data-test='add-to-cart-sauce-labs-backpack']";
         const expectedProductName = 'Sauce Labs Backpack';
         const expectedMessage = 'Thank you for your order!';
 
-        LoginPage.login('standard_user', 'secret_sauce')
+        ShoppingCartPage.addProduct(productSelector)
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
+        ShoppingCartPage.verifyProductInCart(expectedProductName)
 
-        shoppingCartPage.addProduct(productSelector)
-        shoppingCartPage.openCart()
-        shoppingCartPage.verifyProductInCart(expectedProductName)
-
-        checkoutPage.checkoutButton()
-        checkoutPage.fillShippingInformation('firstNameTest', 'lastNameTest', '12345678')
-        checkoutPage.continueCheckoutButton()
-        checkoutPage.finishCheckoutButton()
-        checkoutPage.checkoutMessage(expectedMessage)
+        CheckoutPage.checkoutButton()
+        cy.url().should('include', '/checkout-step-one')
+        CheckoutPage.fillShippingInformation('firstNameTest', 'lastNameTest', '12345678')
+        CheckoutPage.continueCheckoutButton()
+        cy.url().should('include', '/checkout-step-two')
+        CheckoutPage.finishCheckoutButton()
+        CheckoutPage.checkoutMessage(expectedMessage)
     });
     
+    it('CT002 - Finalizar compra com dados incompletos e confirmar mensagem de erro', () => {
+        
+        const productSelector = "[data-test='add-to-cart-sauce-labs-backpack']";
+        const expectedProductName = 'Sauce Labs Backpack';
+
+        const expectedErrors = [
+            'Error: First Name is required',
+            'Error: Last Name is required',
+            'Error: Postal Code is required',
+        ];
+        
+        ShoppingCartPage.addProduct(productSelector)
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
+        ShoppingCartPage.verifyProductInCart(expectedProductName)
+        
+        CheckoutPage.checkoutButton()
+        CheckoutPage.fillShippingInformation('', 'LastNameTest', '12345678')
+        CheckoutPage.continueCheckoutButton()
+        CheckoutPage.errorCheckoutInformation(expectedErrors)
+        cy.reload();
+
+        CheckoutPage.fillShippingInformation('FirstNameTest', '', '12345678')
+        CheckoutPage.continueCheckoutButton()
+        CheckoutPage.errorCheckoutInformation(expectedErrors)
+        cy.reload();
+
+        CheckoutPage.fillShippingInformation('FirstNameTest', 'LastNameTest', '')
+        CheckoutPage.continueCheckoutButton()
+        CheckoutPage.errorCheckoutInformation(expectedErrors)
+        
+    });
 });

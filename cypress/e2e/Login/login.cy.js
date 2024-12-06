@@ -23,6 +23,7 @@ describe('Teste de Cenário de Login', () => {
     LoginPage.fillUsername('problem_user')
     LoginPage.fillPassword('secret_sauce')
     LoginPage.clickLogin()
+    cy.url().should('include', '/inventory')
   });
 
   it('CT004 - Login com o usuário “standard_user” e senha incorreta.', () => {

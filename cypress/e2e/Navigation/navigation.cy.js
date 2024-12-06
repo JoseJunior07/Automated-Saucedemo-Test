@@ -21,7 +21,10 @@ describe('Teste de navegação da loja', () => {
 
     it('CT003 - Clicar em um produto e verificar se o produto correspondente aparece no resultado.', () => {
 
-        NavigationPage.productClick('[data-test="item-4-title-link"]', 'Sauce Labs Backpack')
+        const productSelector = '[data-test="item-4-title-link"]'
+        const expectedProductName = 'Sauce Labs Backpack'
+        
+        NavigationPage.productClick(productSelector, expectedProductName)
     });
 
     

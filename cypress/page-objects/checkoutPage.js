@@ -7,12 +7,18 @@ class checkout {
     cy.get("[data-test='checkout']").click()
    }
 
-   fillShippingInformation(firstName, lastName, postalCode) {
-    cy.get('[data-test="firstName"]').type(firstName); 
-    cy.get('[data-test="lastName"]').type(lastName); 
-    cy.get('[data-test="postalCode"]').type(postalCode); 
-      
-   } 
+   fillShippingInformation(firstName = '', lastName = '', postalCode = '') {
+    if (firstName) {
+        cy.get('[data-test="firstName"]').clear().type(firstName); 
+    }
+    if (lastName) {
+        cy.get('[data-test="lastName"]').clear().type(lastName); 
+    }
+    if (postalCode) {
+        cy.get('[data-test="postalCode"]').clear().type(postalCode); 
+    }
+}
+
 
    continueCheckoutButton() {
     cy.get("[data-test='continue']").click()
@@ -25,7 +31,13 @@ class checkout {
    checkoutMessage(expectedMessage) {
     
     cy.get("[data-test='complete-header']").should('have.text', expectedMessage)
-}
+   }
+
+   errorCheckoutInformation(expectedErrors) {
+    cy.get("[data-test='error']").then((errorMessage) => {
+        expect(expectedErrors).to.include(errorMessage.text());
+    });
+   }
 
 }
 
