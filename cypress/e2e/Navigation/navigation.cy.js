@@ -4,8 +4,13 @@ import LoginPage from "../../page-objects/LoginPage";
 describe('Teste de navegação da loja', () => {
 
     beforeEach(() => {
-        LoginPage.visit('/')
-        LoginPage.login('standard_user', 'secret_sauce')
+        LoginPage.visit('/');
+
+        cy.fixture('users').then(users => {
+            LoginPage.login(users.standard_user.username, users.standard_user.password)
+        });
+        
+        cy.url().should('include', '/inventory') ;
     })
 
     it('CT001 - Verificar se a página inicial exibe pelo menos 6 produtos ao carregar.', () => {

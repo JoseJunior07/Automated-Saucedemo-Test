@@ -5,9 +5,13 @@ import ShoppingCartPage from "../../page-objects/ShoppingCartPage";
 describe('Finalização de compra', () => {
     
     beforeEach(() => {
-        CheckoutPage.visit('/') 
-        LoginPage.login('standard_user', 'secret_sauce')
-        cy.url().should('include', '/inventory')      
+        CheckoutPage.visit('/') ;
+
+        cy.fixture('users').then(users => {
+            LoginPage.login(users.standard_user.username, users.standard_user.password)
+        });
+
+        cy.url().should('include', '/inventory') ;     
     })
 
     it('CT001 - Preencher dados de entrega, finalizar a compra e verificar mensagem de sucesso', () => {
@@ -22,12 +26,14 @@ describe('Finalização de compra', () => {
         ShoppingCartPage.verifyProductInCart(expectedProductName)
 
         CheckoutPage.checkoutButton()
-        cy.url().should('include', '/checkout-step-one')
-        CheckoutPage.fillShippingInformation('firstNameTest', 'lastNameTest', '12345678')
-        CheckoutPage.continueCheckoutButton()
-        cy.url().should('include', '/checkout-step-two')
-        CheckoutPage.finishCheckoutButton()
-        CheckoutPage.checkoutMessage(expectedMessage)
+        cy.fixture('formData').then(formData => {
+            cy.url().should('include', '/checkout-step-one')
+            CheckoutPage.fillShippingInformation(formData.validData.firstName, formData.validData.lastName, formData.validData.postalCode)
+            CheckoutPage.continueCheckoutButton()
+            cy.url().should('include', '/checkout-step-two')
+            CheckoutPage.finishCheckoutButton()
+            CheckoutPage.checkoutMessage(expectedMessage)
+        })
     });
     
     it('CT002 - Finalizar compra com dados incompletos e confirmar mensagem de erro', () => {
@@ -46,20 +52,26 @@ describe('Finalização de compra', () => {
         cy.url().should('include', '/cart')
         ShoppingCartPage.verifyProductInCart(expectedProductName)
         
-        CheckoutPage.checkoutButton()
-        CheckoutPage.fillShippingInformation('', 'LastNameTest', '12345678')
-        CheckoutPage.continueCheckoutButton()
-        CheckoutPage.errorCheckoutInformation(expectedErrors)
-        cy.reload();
+        cy.fixture('formData').then(formData => {
+            CheckoutPage.checkoutButton()
+            CheckoutPage.fillShippingInformation(formData.missingFirstName.firstName, formData.missingFirstName.lastName, formData.missingFirstName.postalCode)
+            CheckoutPage.continueCheckoutButton()
+            CheckoutPage.errorCheckoutInformation(expectedErrors)
+            cy.reload();
+        })
 
-        CheckoutPage.fillShippingInformation('FirstNameTest', '', '12345678')
-        CheckoutPage.continueCheckoutButton()
-        CheckoutPage.errorCheckoutInformation(expectedErrors)
-        cy.reload();
+        cy.fixture('formData').then(formData => {
+            CheckoutPage.fillShippingInformation(formData.missingLastName.firstName, formData.missingLastName.lastName, formData.missingLastName.postalCode)
+            CheckoutPage.continueCheckoutButton()
+            CheckoutPage.errorCheckoutInformation(expectedErrors)
+            cy.reload();
+        })
 
-        CheckoutPage.fillShippingInformation('FirstNameTest', 'LastNameTest', '')
-        CheckoutPage.continueCheckoutButton()
-        CheckoutPage.errorCheckoutInformation(expectedErrors)
+        cy.fixture('formData').then(formData => {
+            CheckoutPage.fillShippingInformation(formData.missingPostalCode.firstName, formData.missingPostalCode.lastName, formData.missingPostalCode.postalCode)
+            CheckoutPage.continueCheckoutButton()
+            CheckoutPage.errorCheckoutInformation(expectedErrors)
+        })
         
     });
 });

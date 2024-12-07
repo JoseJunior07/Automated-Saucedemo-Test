@@ -3,7 +3,6 @@ class ShoppingCart {
         cy.visit('/')
     }
     
-
     addProduct(productSelector) {
         cy.get(productSelector).click()    
     }
