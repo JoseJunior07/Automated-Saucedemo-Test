@@ -67,19 +67,19 @@ Para executar os testes, você pode usar os seguintes comandos:
 # Estrutura dos Testes
 ## Testes de Login
 ``` javascript
-import LoginPage from "../../page-objects/LoginPage";
+import LoginPage from "../../page-objects/LoginPage"
 
 describe('Teste de Cenário de Login', () => {
+  
   beforeEach(() => {
     LoginPage.visit('/')
   })
-
   it('CT001 - Login com usuário "standard_user"', () => {
     LoginPage.fillUsername('standard_user')
     LoginPage.fillPassword('secret_sauce')
     LoginPage.clickLogin()
     cy.url().should('include', '/inventory')
-  });
+  })
 
   it('CT002 - Login com usuário "locked_out_user"', () => {
     LoginPage.fillUsername('locked_out_user')
@@ -92,6 +92,7 @@ describe('Teste de Cenário de Login', () => {
     LoginPage.fillUsername('problem_user')
     LoginPage.fillPassword('secret_sauce')
     LoginPage.clickLogin()
+    cy.url().should('include', '/inventory')
   });
 
   it('CT004 - Login com o usuário “standard_user” e senha incorreta.', () => {
@@ -114,7 +115,7 @@ describe('Teste de Cenário de Login', () => {
     LoginPage.clickLogin()
     LoginPage.errorLoginMessage()
   });
-});
+})
 ````
 ## Testes de Navegação da Loja
 
@@ -123,122 +124,172 @@ import NavigationPage from "../../page-objects/NavigationPage";
 import LoginPage from "../../page-objects/LoginPage";
 
 describe('Teste de navegação da loja', () => {
+
     beforeEach(() => {
         LoginPage.visit('/')
         LoginPage.login('standard_user', 'secret_sauce')
     })
 
     it('CT001 - Verificar se a página inicial exibe pelo menos 6 produtos ao carregar.', () => {
+        
         NavigationPage.countItems()
     });
 
     it('CT002 - Aplicar o filtro de produtos “Low to High” e verificar se os produtos são exibidos em ordem de preço crescente', () => {
+       
         NavigationPage.productSortContainer()
         NavigationPage.inventoryItemPrice()
     });
 
     it('CT003 - Clicar em um produto e verificar se o produto correspondente aparece no resultado.', () => {
-        NavigationPage.productClick('[data-test="item-4-title-link"]', 'Sauce Labs Backpack')
+
+        const productSelector = '[data-test="item-4-title-link"]'
+        const expectedProductName = 'Sauce Labs Backpack'
+        
+        NavigationPage.productClick(productSelector, expectedProductName)
     });
+
+    
 });
 ````
 
 ## Testes de Carrinho de Compras
 
 ```javascript
-import shoppingCartPage from "../../page-objects/shoppingCartPage";
+import ShoppingCartPage from "../../page-objects/ShoppingCartPage";
 import LoginPage from "../../page-objects/LoginPage";
 
+
 describe('Carrinho de Compras', () => {
+
     beforeEach(() => {
-        shoppingCartPage.visit('/')
+        ShoppingCartPage.visit('/')
+        LoginPage.login('standard_user', 'secret_sauce')
+        cy.url().should('include', '/inventory')
     })
 
     it('CT001 - Adicionar um produto ao carrinho e verificar se o carrinho exibe o produto adicionado.', () => {
         const productSelector = "[data-test='add-to-cart-sauce-labs-backpack']";
         const expectedProductName = 'Sauce Labs Backpack';
 
-        LoginPage.login('standard_user', 'secret_sauce')
-
-        shoppingCartPage.addProduct(productSelector)
-        shoppingCartPage.openCart()
-        shoppingCartPage.verifyProductInCart(expectedProductName)
+        ShoppingCartPage.addProduct(productSelector)
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
+        ShoppingCartPage.verifyProductInCart(expectedProductName)
     });
 
     it('CT002 - Adicionar múltiplos produtos ao carrinho e confirmar se todos estão listados.', () => {
         const products = [
-            { selector: "[data-test='add-to-cart-sauce-labs-backpack']", name: 'Sauce Labs Backpack' },
-            { selector: "[data-test='add-to-cart-sauce-labs-bike-light']", name: 'Sauce Labs Bike Light' },
-            { selector: "[data-test='add-to-cart-sauce-labs-bolt-t-shirt']", name: 'Sauce Labs Bolt T-Shirt' }
-        ];
-
-        LoginPage.login('standard_user', 'secret_sauce')
+            { selector: "[data-test='add-to-cart-sauce-labs-backpack']", name: 'Sauce Labs Backpack'},
+            { selector: "[data-test='add-to-cart-sauce-labs-bike-light']", name: 'Sauce Labs Bike Light'},
+            { selector: "[data-test='add-to-cart-sauce-labs-bolt-t-shirt']", name: 'Sauce Labs Bolt T-Shirt'}
+        ]; 
 
         products.forEach(product => {
-            shoppingCartPage.addProduct(product.selector)
+            ShoppingCartPage.addProduct(product.selector)
         });
 
-        shoppingCartPage.openCart()
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
 
         products.forEach(product => {
-            shoppingCartPage.verifyProductInCart(product.name)
+            ShoppingCartPage.verifyProductInCart(product.name)
         });
     });
 
     it('CT003 - Remover um produto do carrinho e verificar se o total é atualizado corretamente.', () => {
         const products = [
             { selector: "[data-test='add-to-cart-sauce-labs-backpack']", name: 'Sauce Labs Backpack', removeSelector: "[data-test='remove-sauce-labs-backpack']" },
-            { selector: "[data-test='add-to-cart-sauce-labs-bike-light']", name: 'Sauce Labs Bike Light', removeSelector: "[data-test='remove-sauce-labs-bike-light']" },
+            { selector: "[data-test='add-to-cart-sauce-labs-bike-light']", name: 'Sauce Labs Bike Light', removeSelector: "[data-test='remove-sauce-labs-bike-light']"},
             { selector: "[data-test='add-to-cart-sauce-labs-bolt-t-shirt']", name: 'Sauce Labs Bolt T-Shirt', removeSelector: "[data-test='remove-sauce-labs-bolt-t-shirt']" }
-        ];
-
-        LoginPage.login('standard_user', 'secret_sauce')
+        ]; 
 
         products.forEach(product => {
-            shoppingCartPage.addProduct(product.selector)
+            ShoppingCartPage.addProduct(product.selector)
         });
 
-        shoppingCartPage.openCart()
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
 
         products.forEach(product => {
-            shoppingCartPage.verifyProductInCart(product.name)
+            ShoppingCartPage.verifyProductInCart(product.name)
         });
 
         const productToRemove = products[0]
-        shoppingCartPage.removeProduct(productToRemove.removeSelector)
-        shoppingCartPage.verifyCartItemCount(products.length - 1)
+        ShoppingCartPage.removeProduct(productToRemove.removeSelector)
+
+        ShoppingCartPage.verifyCartItemCount(products.length - 1)
     });
+    
 });
 ````
 
 ## Testes de Finalização de Compra
 
 ```javascript	
-import checkoutPage from "../../page-objects/checkoutPage";
+import CheckoutPage from "../../page-objects/CheckoutPage";
 import LoginPage from "../../page-objects/LoginPage";
-import shoppingCartPage from "../../page-objects/shoppingCartPage";
+import ShoppingCartPage from "../../page-objects/ShoppingCartPage";
 
 describe('Finalização de compra', () => {
+    
     beforeEach(() => {
-        checkoutPage.visit('/')
+        CheckoutPage.visit('/') 
+        LoginPage.login('standard_user', 'secret_sauce')
+        cy.url().should('include', '/inventory')      
     })
 
-    it('Preencher dados de entrega, finalizar a compra e verificar mensagem de sucesso', () => {
+    it('CT001 - Preencher dados de entrega, finalizar a compra e verificar mensagem de sucesso', () => {
+        
         const productSelector = "[data-test='add-to-cart-sauce-labs-backpack']";
         const expectedProductName = 'Sauce Labs Backpack';
         const expectedMessage = 'Thank you for your order!';
 
-        LoginPage.login('standard_user', 'secret_sauce')
+        ShoppingCartPage.addProduct(productSelector)
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
+        ShoppingCartPage.verifyProductInCart(expectedProductName)
 
-        shoppingCartPage.addProduct(productSelector)
-        shoppingCartPage.openCart()
-        shoppingCartPage.verifyProductInCart(expectedProductName)
+        CheckoutPage.checkoutButton()
+        cy.url().should('include', '/checkout-step-one')
+        CheckoutPage.fillShippingInformation('firstNameTest', 'lastNameTest', '12345678')
+        CheckoutPage.continueCheckoutButton()
+        cy.url().should('include', '/checkout-step-two')
+        CheckoutPage.finishCheckoutButton()
+        CheckoutPage.checkoutMessage(expectedMessage)
+    });
+    
+    it('CT002 - Finalizar compra com dados incompletos e confirmar mensagem de erro', () => {
+        
+        const productSelector = "[data-test='add-to-cart-sauce-labs-backpack']";
+        const expectedProductName = 'Sauce Labs Backpack';
 
-        checkoutPage.checkoutButton()
-        checkoutPage.fillShippingInformation('firstNameTest', 'lastNameTest', '12345678')
-        checkoutPage.continueCheckoutButton()
-        checkoutPage.finishCheckoutButton()
-        checkoutPage.checkoutMessage(expectedMessage)
+        const expectedErrors = [
+            'Error: First Name is required',
+            'Error: Last Name is required',
+            'Error: Postal Code is required',
+        ];
+        
+        ShoppingCartPage.addProduct(productSelector)
+        ShoppingCartPage.openCart()
+        cy.url().should('include', '/cart')
+        ShoppingCartPage.verifyProductInCart(expectedProductName)
+        
+        CheckoutPage.checkoutButton()
+        CheckoutPage.fillShippingInformation('', 'LastNameTest', '12345678')
+        CheckoutPage.continueCheckoutButton()
+        CheckoutPage.errorCheckoutInformation(expectedErrors)
+        cy.reload();
+
+        CheckoutPage.fillShippingInformation('FirstNameTest', '', '12345678')
+        CheckoutPage.continueCheckoutButton()
+        CheckoutPage.errorCheckoutInformation(expectedErrors)
+        cy.reload();
+
+        CheckoutPage.fillShippingInformation('FirstNameTest', 'LastNameTest', '')
+        CheckoutPage.continueCheckoutButton()
+        CheckoutPage.errorCheckoutInformation(expectedErrors)
+        
     });
 });
 ````
