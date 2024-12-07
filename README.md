@@ -66,7 +66,7 @@ Para executar os testes, você pode usar os seguintes comandos:
 
 # Estrutura dos Testes
 ## Testes de Login
-``` javascript
+```javascript
 import LoginPage from "../../page-objects/LoginPage"
 
 describe('Teste de Cenário de Login', () => {
@@ -75,45 +75,57 @@ describe('Teste de Cenário de Login', () => {
     LoginPage.visit('/')
   })
   it('CT001 - Login com usuário "standard_user"', () => {
-    LoginPage.fillUsername('standard_user')
-    LoginPage.fillPassword('secret_sauce')
-    LoginPage.clickLogin()
-    cy.url().should('include', '/inventory')
+    cy.fixture('users').then(users => {
+      LoginPage.fillUsername(users.standard_user.username)
+      LoginPage.fillPassword(users.standard_user.password)
+      LoginPage.clickLogin()
+      cy.url().should('include', '/inventory')
+    })
   })
 
   it('CT002 - Login com usuário "locked_out_user"', () => {
-    LoginPage.fillUsername('locked_out_user')
-    LoginPage.fillPassword('secret_sauce')
-    LoginPage.clickLogin()
-    LoginPage.userBlockedMessage()
+    cy.fixture('users').then(users => {
+      LoginPage.fillUsername(users.locked_out_user.username)
+      LoginPage.fillPassword(users.locked_out_user.password)
+      LoginPage.clickLogin()
+      LoginPage.userBlockedMessage()
+    })
   });
 
   it('CT003 - Login com usuário "problem_user"', () => {
-    LoginPage.fillUsername('problem_user')
-    LoginPage.fillPassword('secret_sauce')
-    LoginPage.clickLogin()
-    cy.url().should('include', '/inventory')
+    cy.fixture('users').then(users => {
+      LoginPage.fillUsername(users.problem_user.username)
+      LoginPage.fillPassword(users.problem_user.password)
+      LoginPage.clickLogin()
+      cy.url().should('include', '/inventory')
+    })
   });
 
   it('CT004 - Login com o usuário “standard_user” e senha incorreta.', () => {
-    LoginPage.fillUsername('standard_user')
-    LoginPage.fillPassword('wrong_password')
-    LoginPage.clickLogin()
-    LoginPage.errorLoginMessage()
+    cy.fixture('invalidUsers').then(invalidUsers => {
+      LoginPage.fillUsername(invalidUsers.standard_user.username)
+      LoginPage.fillPassword(invalidUsers.standard_user.password)
+      LoginPage.clickLogin()
+      LoginPage.errorLoginMessage()
+    })
   });
 
   it('CT005 - Login com o usuário “locked_out_user” e senha incorreta.', () => {
-    LoginPage.fillUsername('locked_out_user')
-    LoginPage.fillPassword('wrong_password')
-    LoginPage.clickLogin()
-    LoginPage.errorLoginMessage()
+    cy.fixture('invalidUsers').then(invalidUsers => {
+      LoginPage.fillUsername(invalidUsers.locked_out_user.username)
+      LoginPage.fillPassword(invalidUsers.locked_out_user.password)
+      LoginPage.clickLogin()
+      LoginPage.errorLoginMessage()
+    })
   });
 
   it('CT006 - Login com o usuário “problem_user” e senha incorreta.', () => {
-    LoginPage.fillUsername('problem_user')
-    LoginPage.fillPassword('wrong_password')
-    LoginPage.clickLogin()
-    LoginPage.errorLoginMessage()
+    cy.fixture('invalidUsers').then(invalidUsers => {
+      LoginPage.fillUsername(invalidUsers.problem_user.username)
+      LoginPage.fillPassword(invalidUsers.problem_user.password)
+      LoginPage.clickLogin()
+      LoginPage.errorLoginMessage()
+    })
   });
 })
 ````
@@ -126,8 +138,13 @@ import LoginPage from "../../page-objects/LoginPage";
 describe('Teste de navegação da loja', () => {
 
     beforeEach(() => {
-        LoginPage.visit('/')
-        LoginPage.login('standard_user', 'secret_sauce')
+        LoginPage.visit('/');
+
+        cy.fixture('users').then(users => {
+            LoginPage.login(users.standard_user.username, users.standard_user.password)
+        });
+        
+        cy.url().should('include', '/inventory') ;
     })
 
     it('CT001 - Verificar se a página inicial exibe pelo menos 6 produtos ao carregar.', () => {
@@ -163,9 +180,13 @@ import LoginPage from "../../page-objects/LoginPage";
 describe('Carrinho de Compras', () => {
 
     beforeEach(() => {
-        ShoppingCartPage.visit('/')
-        LoginPage.login('standard_user', 'secret_sauce')
-        cy.url().should('include', '/inventory')
+        ShoppingCartPage.visit('/');
+
+        cy.fixture('users').then(users => {
+            LoginPage.login(users.standard_user.username, users.standard_user.password)
+        });
+
+        cy.url().should('include', '/inventory');
     })
 
     it('CT001 - Adicionar um produto ao carrinho e verificar se o carrinho exibe o produto adicionado.', () => {
@@ -183,18 +204,18 @@ describe('Carrinho de Compras', () => {
             { selector: "[data-test='add-to-cart-sauce-labs-backpack']", name: 'Sauce Labs Backpack'},
             { selector: "[data-test='add-to-cart-sauce-labs-bike-light']", name: 'Sauce Labs Bike Light'},
             { selector: "[data-test='add-to-cart-sauce-labs-bolt-t-shirt']", name: 'Sauce Labs Bolt T-Shirt'}
-        ]; 
+        ]
 
         products.forEach(product => {
             ShoppingCartPage.addProduct(product.selector)
-        });
+        })
 
         ShoppingCartPage.openCart()
         cy.url().should('include', '/cart')
 
         products.forEach(product => {
             ShoppingCartPage.verifyProductInCart(product.name)
-        });
+        })
     });
 
     it('CT003 - Remover um produto do carrinho e verificar se o total é atualizado corretamente.', () => {
@@ -202,18 +223,18 @@ describe('Carrinho de Compras', () => {
             { selector: "[data-test='add-to-cart-sauce-labs-backpack']", name: 'Sauce Labs Backpack', removeSelector: "[data-test='remove-sauce-labs-backpack']" },
             { selector: "[data-test='add-to-cart-sauce-labs-bike-light']", name: 'Sauce Labs Bike Light', removeSelector: "[data-test='remove-sauce-labs-bike-light']"},
             { selector: "[data-test='add-to-cart-sauce-labs-bolt-t-shirt']", name: 'Sauce Labs Bolt T-Shirt', removeSelector: "[data-test='remove-sauce-labs-bolt-t-shirt']" }
-        ]; 
+        ]
 
         products.forEach(product => {
             ShoppingCartPage.addProduct(product.selector)
-        });
+        })
 
         ShoppingCartPage.openCart()
         cy.url().should('include', '/cart')
 
         products.forEach(product => {
             ShoppingCartPage.verifyProductInCart(product.name)
-        });
+        })
 
         const productToRemove = products[0]
         ShoppingCartPage.removeProduct(productToRemove.removeSelector)
@@ -234,9 +255,13 @@ import ShoppingCartPage from "../../page-objects/ShoppingCartPage";
 describe('Finalização de compra', () => {
     
     beforeEach(() => {
-        CheckoutPage.visit('/') 
-        LoginPage.login('standard_user', 'secret_sauce')
-        cy.url().should('include', '/inventory')      
+        CheckoutPage.visit('/') ;
+
+        cy.fixture('users').then(users => {
+            LoginPage.login(users.standard_user.username, users.standard_user.password)
+        });
+
+        cy.url().should('include', '/inventory') ;     
     })
 
     it('CT001 - Preencher dados de entrega, finalizar a compra e verificar mensagem de sucesso', () => {
@@ -251,12 +276,14 @@ describe('Finalização de compra', () => {
         ShoppingCartPage.verifyProductInCart(expectedProductName)
 
         CheckoutPage.checkoutButton()
-        cy.url().should('include', '/checkout-step-one')
-        CheckoutPage.fillShippingInformation('firstNameTest', 'lastNameTest', '12345678')
-        CheckoutPage.continueCheckoutButton()
-        cy.url().should('include', '/checkout-step-two')
-        CheckoutPage.finishCheckoutButton()
-        CheckoutPage.checkoutMessage(expectedMessage)
+        cy.fixture('formData').then(formData => {
+            cy.url().should('include', '/checkout-step-one')
+            CheckoutPage.fillShippingInformation(formData.validData.firstName, formData.validData.lastName, formData.validData.postalCode)
+            CheckoutPage.continueCheckoutButton()
+            cy.url().should('include', '/checkout-step-two')
+            CheckoutPage.finishCheckoutButton()
+            CheckoutPage.checkoutMessage(expectedMessage)
+        })
     });
     
     it('CT002 - Finalizar compra com dados incompletos e confirmar mensagem de erro', () => {
@@ -275,20 +302,26 @@ describe('Finalização de compra', () => {
         cy.url().should('include', '/cart')
         ShoppingCartPage.verifyProductInCart(expectedProductName)
         
-        CheckoutPage.checkoutButton()
-        CheckoutPage.fillShippingInformation('', 'LastNameTest', '12345678')
-        CheckoutPage.continueCheckoutButton()
-        CheckoutPage.errorCheckoutInformation(expectedErrors)
-        cy.reload();
+        cy.fixture('formData').then(formData => {
+            CheckoutPage.checkoutButton()
+            CheckoutPage.fillShippingInformation(formData.missingFirstName.firstName, formData.missingFirstName.lastName, formData.missingFirstName.postalCode)
+            CheckoutPage.continueCheckoutButton()
+            CheckoutPage.errorCheckoutInformation(expectedErrors)
+            cy.reload();
+        })
 
-        CheckoutPage.fillShippingInformation('FirstNameTest', '', '12345678')
-        CheckoutPage.continueCheckoutButton()
-        CheckoutPage.errorCheckoutInformation(expectedErrors)
-        cy.reload();
+        cy.fixture('formData').then(formData => {
+            CheckoutPage.fillShippingInformation(formData.missingLastName.firstName, formData.missingLastName.lastName, formData.missingLastName.postalCode)
+            CheckoutPage.continueCheckoutButton()
+            CheckoutPage.errorCheckoutInformation(expectedErrors)
+            cy.reload();
+        })
 
-        CheckoutPage.fillShippingInformation('FirstNameTest', 'LastNameTest', '')
-        CheckoutPage.continueCheckoutButton()
-        CheckoutPage.errorCheckoutInformation(expectedErrors)
+        cy.fixture('formData').then(formData => {
+            CheckoutPage.fillShippingInformation(formData.missingPostalCode.firstName, formData.missingPostalCode.lastName, formData.missingPostalCode.postalCode)
+            CheckoutPage.continueCheckoutButton()
+            CheckoutPage.errorCheckoutInformation(expectedErrors)
+        })
         
     });
 });
